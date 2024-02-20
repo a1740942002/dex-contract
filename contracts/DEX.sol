@@ -6,6 +6,8 @@ import "@thirdweb-dev/contracts/base/ERC20Base.sol";
 contract DEX is ERC20Base {
     address public tokenAddress;
 
+    // 對基礎ERC20合約進行初始化，設定管理員地址、代幣名稱和符號。
+    // 然後，將`_token`存儲在`token`變量中，用於後續與指定的ERC20代幣合約進行交互。
     constructor(
         address _tokenAddress,
         address _defaultAdminAddress,
@@ -15,7 +17,7 @@ contract DEX is ERC20Base {
         tokenAddress = _tokenAddress;
     }
 
-    // 查詢當前合约地址在 ERC20 代幣合约中的餘額。
+    // 查詢當前合约地址在該 ERC20 代幣合约中的餘額。
     function getTokensInContract() public view returns (uint256) {
         return ERC20Base(tokenAddress).balanceOf(address(this));
     }
@@ -24,10 +26,13 @@ contract DEX is ERC20Base {
         uint256 _liquidity;
         uint256 balanceInEth = address(this).balance;
         uint256 tokenReserve = getTokensInContract();
-        ERC20Base _tokenAddress = ERC20Base(tokenAddress);
 
         if (tokenReserve == 0) {
-            _tokenAddress.transferFrom(msg.sender, address(this), _amount);
+            ERC20Base(tokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                _amount
+            );
             _liquidity = balanceInEth;
             _mint(msg.sender, _amount);
         } else {
@@ -36,7 +41,11 @@ contract DEX is ERC20Base {
                 _amount >= (msg.value * tokenReserve) / reservedEth,
                 "Amount of tokens sent is less than the minimum tokens required"
             );
-            _tokenAddress.transferFrom(msg.sender, address(this), _amount);
+            ERC20Base(tokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                _amount
+            );
             unchecked {
                 _liquidity = (totalSupply() * msg.value) / reservedEth;
             }
